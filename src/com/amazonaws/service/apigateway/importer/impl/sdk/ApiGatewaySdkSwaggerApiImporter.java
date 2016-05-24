@@ -206,7 +206,9 @@ public class ApiGatewaySdkSwaggerApiImporter extends ApiGatewaySdkApiImporter im
                              Operation op, String modelContentType) {
         PutMethodInput input = new PutMethodInput();
 
-        input.setAuthorizationType(getAuthorizationType(op));
+        String authorizationType = getAuthorizationType(op);
+
+        input.setAuthorizationType(authorizationType);
         input.setApiKeyRequired(isApiKeyRequired(op));
 
         // set input model if present in body
@@ -240,6 +242,15 @@ public class ApiGatewaySdkSwaggerApiImporter extends ApiGatewaySdkApiImporter im
         createMethodResponses(api, method, modelContentType, op.getResponses());
         createMethodParameters(api, method, op.getParameters());
         createIntegration(method, op.getVendorExtensions());
+
+        // Update CUSTOM authorizer
+        if (authorizationType.equals("CUSTOM")) {
+            PatchDocument pd = createPatchDocument(
+                    createReplaceOperation("/authorizationType", getAuthorizationType(op)),
+                    createReplaceOperation("/authorizerId", getAuthorizerId(op)));
+
+            method.updateMethod(pd);
+        }
     }
 
     private void createIntegration(Method method, Map<String, Object> vendorExtensions) {
@@ -299,6 +310,23 @@ public class ApiGatewaySdkSwaggerApiImporter extends ApiGatewaySdkApiImporter im
             }
         }
         return authType;
+    }
+
+    private String getAuthorizerId(Operation op) {
+
+        String id = "";
+
+        if (op.getVendorExtensions() != null) {
+            Object objectNode = op.getVendorExtensions().get(EXTENSION_AUTH);
+
+            Map<String, String> authExtension = Json.mapper().convertValue( objectNode, Map.class );
+
+            if (authExtension != null) {
+                id = authExtension.get("authorizerId");
+            }
+        }
+
+        return id;
     }
 
     private Boolean isApiKeyRequired(Operation op) {
@@ -410,9 +438,21 @@ public class ApiGatewaySdkSwaggerApiImporter extends ApiGatewaySdkApiImporter im
     private void updateMethod(RestApi api, Resource resource, String httpMethod, Operation op, String modelContentType) {
         LOG.info(format("Updating method for api id %s and resource %s and method %s", api.getId(), resource.getId(), httpMethod));
 
-        PatchDocument pd = createPatchDocument(
-                createReplaceOperation("/authorizationType", getAuthorizationType(op)),
-                createReplaceOperation("/apiKeyRequired", getStringValue(isApiKeyRequired(op))));
+        String authorizationType = getAuthorizationType(op);
+
+        PatchDocument pd;
+
+        if (authorizationType.equals("CUSTOM")) {
+            pd = createPatchDocument(
+                    createReplaceOperation("/authorizationType", getAuthorizationType(op)),
+                    createReplaceOperation("/apiKeyRequired", getStringValue(isApiKeyRequired(op))),
+                    createReplaceOperation("/authorizerId", getAuthorizerId(op)));
+        } else {
+            pd = createPatchDocument(
+                    createReplaceOperation("/authorizationType", getAuthorizationType(op)),
+                    createReplaceOperation("/apiKeyRequired", getStringValue(isApiKeyRequired(op))));
+        }
+
         Method method = resource.getMethodByHttpMethod(httpMethod.toUpperCase()).updateMethod(pd);
 
         updateMethodResponses(api, method, modelContentType, op.getResponses());
