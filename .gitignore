@@ -3,3 +3,5 @@
 aws-apigateway-swagger-importer.iml
 build/
 target/
+
+*.iml
