@@ -273,9 +273,9 @@
     </licenses>
 
     <scm>
-        <url>scm:git:git@github.com:awslabs/aws-apigateway-importer.git</url>
-        <connection>scm:git:git@github.com:awslabs/aws-apigateway-importer.git</connection>
-        <developerConnection>scm:git:git@github.com:awslabs/aws-apigateway-importer.git</developerConnection>
+        <url>scm:git:git@github.com:KKTV/aws-apigateway-importer.git</url>
+        <connection>scm:git:git@github.com:KKTV/aws-apigateway-importer.git</connection>
+        <developerConnection>scm:git:git@github.com:KKTV/aws-apigateway-importer.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
