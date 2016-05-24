@@ -208,7 +208,7 @@ public class ApiGatewaySdkSwaggerApiImporter extends ApiGatewaySdkApiImporter im
 
         String authorizationType = getAuthorizationType(op);
 
-        input.setAuthorizationType(authorizationType);
+        input.setAuthorizationType(authorizationType.equals("CUSTOM") ? "NONE" : authorizationType);
         input.setApiKeyRequired(isApiKeyRequired(op));
 
         // set input model if present in body
